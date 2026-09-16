@@ -1,0 +1,106 @@
+name: Repository Health
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Unity project structure and metadata
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('.')
+          required = [
+              root / 'Assets' / '_Project' / 'Scripts',
+              root / 'Assets' / '_Project' / 'Data' / 'ThirdPartyNotices',
+              root / 'Packages' / 'manifest.json',
+              root / 'Packages' / 'packages-lock.json',
+              root / 'ProjectSettings' / 'ProjectVersion.txt',
+          ]
+          missing = [str(path) for path in required if not path.exists()]
+          if missing:
+              raise SystemExit('Missing required project paths: ' + ', '.join(missing))
+
+          manifest = json.loads((root / 'Packages' / 'manifest.json').read_text())
+          dependencies = manifest.get('dependencies', {})
+          expected = {
+              'com.unity.ugui': '1.0.0',
+              'com.unity.modules.audio': '1.0.0',
+              'com.unity.modules.physics2d': '1.0.0',
+          }
+          for package, version in expected.items():
+              if dependencies.get(package) != version:
+                  raise SystemExit(f'{package} must be pinned to {version}')
+
+          lock = json.loads((root / 'Packages' / 'packages-lock.json').read_text())
+          lock_dependencies = lock.get('dependencies', {})
+          for package in expected:
+              if package not in lock_dependencies:
+                  raise SystemExit(f'{package} is missing from packages-lock.json')
+
+          version_text = (root / 'ProjectSettings' / 'ProjectVersion.txt').read_text()
+          if '2022.3.62f3' not in version_text:
+              raise SystemExit('Unexpected Unity editor version')
+
+          print('Unity project metadata looks consistent.')
+          PY
+
+      - name: Ensure generated Unity folders are not tracked
+        shell: bash
+        run: |
+          tracked_generated="$(git ls-files | grep -E '(^|/)(Library|Temp|Obj|Logs|UserSettings|MemoryCaptures|Recordings|Build|Builds)/' || true)"
+          if [ -n "$tracked_generated" ]; then
+            echo "Generated Unity files are tracked:"
+            echo "$tracked_generated"
+            exit 1
+          fi
+
+      - name: Scan text sources for common committed secret patterns
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          roots = [Path('Assets'), Path('Packages'), Path('ProjectSettings')]
+          patterns = {
+              'Google API key': re.compile(r'AIza[0-9A-Za-z_-]{30,}'),
+              'GitHub token': re.compile(r'gh[pousr]_[A-Za-z0-9_]{20,}'),
+              'OpenAI-style secret': re.compile(r'sk-[A-Za-z0-9_-]{20,}'),
+              'Private key block': re.compile(r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----'),
+          }
+
+          findings = []
+          for base in roots:
+              if not base.exists():
+                  continue
+              for path in base.rglob('*'):
+                  if not path.is_file():
+                      continue
+                  try:
+                      text = path.read_text(encoding='utf-8')
+                  except (UnicodeDecodeError, OSError):
+                      continue
+                  for label, pattern in patterns.items():
+                      if pattern.search(text):
+                          findings.append(f'{label}: {path}')
+
+          if findings:
+              raise SystemExit('Potential secrets detected:\n' + '\n'.join(findings))
+
+          print('No common committed secret patterns detected.')
+          PY
