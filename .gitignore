@@ -1,3 +1,4 @@
+# Unity generated folders
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -8,8 +9,7 @@
 [Uu]serSettings/
 [Rr]ecordings/
 
-Assets/AssetStoreTools*
-
+# Unity / IDE generated files
 *.csproj
 *.unityproj
 *.sln
@@ -24,5 +24,40 @@ Assets/AssetStoreTools*
 *.mdb
 *.opendb
 *.VC.db
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
 
+# IDE folders
+.vs/
+.idea/
+.vscode/
+ExportedObj/
+.consulo/
+
+# Unity / platform outputs
+*.apk
+*.aab
+*.app
+*.unitypackage
+*.xcworkspace
+*.xcodeproj
+
+# Local signing / provisioning material
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.mobileprovision
+
+# OS noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Asset Store tools
+Assets/AssetStoreTools*
+
+# Diagnostics / crash output
 sysinfo.txt
+crashlytics-build.properties
