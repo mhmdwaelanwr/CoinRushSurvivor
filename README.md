@@ -18,7 +18,7 @@ A mobile-first 2D survival prototype built with Unity. The project focuses on sh
 - Unity `2022.3.62f3` (LTS)
 - C#
 - Unity UI (`com.unity.ugui`)
-- Built-in Audio and Physics 2D modules
+- Built-in Audio and Physics 2D APIs
 
 ## Getting Started
 
@@ -60,7 +60,7 @@ Assets/_Project/
 
 ## Notes
 
-The source snapshot originally contained Unity-generated `Library`, `Logs`, and `UserSettings` directories. They are intentionally excluded from version control. The package manifest also declares the built-in Audio and Physics 2D modules used by the scripts so a fresh import can resolve those Unity API references.
+Unity-generated `Library`, `Logs`, `UserSettings`, `Temp`, `Obj`, and build-output directories are intentionally excluded from version control. The project uses Unity's built-in Audio and Physics 2D APIs alongside Unity UI.
 
 ## Third-Party Assets
 
