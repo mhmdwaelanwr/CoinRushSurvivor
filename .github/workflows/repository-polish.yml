@@ -1,0 +1,67 @@
+name: Repository Polish
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Normalize accidental executable bits
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          changed=0
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            git update-index --chmod=-x -- "$path"
+            echo "Normalized: $path"
+            changed=1
+          done < <(git ls-files -s | awk '$1 == "100755" {print $4}')
+
+          if [ "$changed" -eq 1 ] && ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Normalize accidental executable bits"
+            git push origin HEAD:main
+          else
+            echo "No executable-bit cleanup needed."
+          fi
+
+      - name: Set repository description and topics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY" \
+            -f description='Mobile-first 2D survival game built with Unity and C#, featuring progression, persistent upgrades, cosmetics, touch controls, and custom editor tooling.'
+
+          cat > /tmp/topics.json <<'JSON'
+          {
+            "names": [
+              "unity",
+              "unity2d",
+              "csharp",
+              "game-development",
+              "mobile-game",
+              "survival-game",
+              "roguelite",
+              "arcade-game",
+              "gamedev"
+            ]
+          }
+          JSON
+
+          gh api --method PUT "repos/$GITHUB_REPOSITORY/topics" --input /tmp/topics.json
