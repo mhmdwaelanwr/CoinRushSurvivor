@@ -1,6 +1,12 @@
 # Coin Rush Survivor
 
+[![Repository Health](https://github.com/mhmdwaelanwr/CoinRushSurvivor/actions/workflows/repository-health.yml/badge.svg)](https://github.com/mhmdwaelanwr/CoinRushSurvivor/actions/workflows/repository-health.yml)
+
 A mobile-first 2D survival prototype built with Unity. The project focuses on short arcade runs, escalating difficulty, collectible progression, run upgrades, persistent meta progression, cosmetics, revive hooks, and touch-friendly UI.
+
+## Project Status
+
+**Playable prototype / vertical slice.** Core gameplay, progression, persistence, UI, audio, mobile input, and editor-side project generation are implemented. Visual polish and repository media are still being refined.
 
 ## Highlights
 
@@ -57,6 +63,12 @@ Assets/_Project/
 │   └── UI/
 └── ...generated scenes, prefabs and ScriptableObjects
 ```
+
+## Repository Health
+
+GitHub Actions performs lightweight validation on every push and pull request. It checks the required Unity project structure, package metadata, Unity editor version, tracked generated folders, and common committed-secret patterns.
+
+This is a repository health check rather than a full Unity build pipeline, so final gameplay validation should still be performed in Unity.
 
 ## Notes
 
